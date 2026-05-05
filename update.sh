@@ -102,7 +102,6 @@ for dolibarrVersion in "${DOLIBARR_VERSIONS[@]}"; do
     fi
 
     if [ "${PODMAN_BUILD}" = "1" ]; then
-        echo "Trying to build ${buildOptionTags} in '${dir}'"
         podman build \
           --compress \
           ${buildOptionTags} \
