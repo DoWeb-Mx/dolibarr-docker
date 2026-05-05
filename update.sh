@@ -8,6 +8,7 @@ set -e
 
 DOCKER_BUILD=${DOCKER_BUILD:-0}
 DOCKER_PUSH=${DOCKER_PUSH:-0}
+PODMAN_BUILD=${PODMAN_BUILD:-0}
 
 BASE_DIR="$( cd "$(dirname "$0")" && pwd )"
 
@@ -98,6 +99,13 @@ for dolibarrVersion in "${DOLIBARR_VERSIONS[@]}"; do
           ${buildOptionTags} \
           "${dir}"
       fi
+    fi
+
+    if [ "${PODMAN_BUILD}" = "1" ]; then
+        podman build \
+          --compress \
+          ${buildOptionTags} \
+          "${dir}"
     fi
   done
 
