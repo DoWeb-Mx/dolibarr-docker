@@ -1,0 +1,56 @@
+-- MySQL dump 10.13  Distrib 8.0.34, for macos13 (x86_64)
+--
+-- Host: localhost    Database: dolibarr-saas
+-- ------------------------------------------------------
+-- Server version	8.1.0
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `llx_user_rights`
+--
+
+DROP TABLE IF EXISTS `llx_user_rights`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `llx_user_rights` (
+  `rowid` int NOT NULL AUTO_INCREMENT,
+  `entity` int NOT NULL DEFAULT '1',
+  `fk_user` int NOT NULL,
+  `fk_id` int NOT NULL,
+  PRIMARY KEY (`rowid`),
+  UNIQUE KEY `uk_user_rights` (`entity`,`fk_user`,`fk_id`),
+  KEY `fk_user_rights_fk_user_user` (`fk_user`),
+  CONSTRAINT `fk_user_rights_fk_user_user` FOREIGN KEY (`fk_user`) REFERENCES `llx_user` (`rowid`)
+) ENGINE=InnoDB AUTO_INCREMENT=170 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `llx_user_rights`
+--
+
+LOCK TABLES `llx_user_rights` WRITE;
+/*!40000 ALTER TABLE `llx_user_rights` DISABLE KEYS */;
+INSERT INTO `llx_user_rights` VALUES (76,1,1,11),(70,1,1,12),(71,1,1,13),(72,1,1,14),(73,1,1,15),(75,1,1,16),(77,1,1,19),(40,1,1,21),(34,1,1,22),(35,1,1,24),(36,1,1,25),(37,1,1,26),(39,1,1,27),(41,1,1,28),(42,1,1,29),(126,1,1,31),(118,1,1,32),(119,1,1,33),(123,1,1,34),(120,1,1,35),(121,1,1,36),(125,1,1,38),(127,1,1,39),(111,1,1,91),(108,1,1,92),(110,1,1,93),(112,1,1,94),(91,1,1,111),(82,1,1,112),(84,1,1,113),(86,1,1,114),(88,1,1,115),(90,1,1,116),(92,1,1,117),(21,1,1,121),(18,1,1,122),(20,1,1,125),(22,1,1,126),(23,1,1,130),(168,1,1,161),(161,1,1,162),(163,1,1,163),(165,1,1,164),(167,1,1,165),(169,1,1,167),(140,1,1,241),(139,1,1,242),(141,1,1,243),(24,1,1,262),(30,1,1,281),(27,1,1,282),(29,1,1,283),(31,1,1,286),(150,1,1,331),(149,1,1,332),(151,1,1,333),(135,1,1,531),(130,1,1,532),(131,1,1,533),(134,1,1,534),(132,1,1,535),(136,1,1,538),(43,1,1,1181),(57,1,1,1182),(46,1,1,1183),(47,1,1,1184),(49,1,1,1185),(51,1,1,1186),(53,1,1,1187),(56,1,1,1188),(54,1,1,1189),(58,1,1,1191),(14,1,1,1201),(15,1,1,1202),(66,1,1,1231),(61,1,1,1232),(62,1,1,1233),(64,1,1,1234),(65,1,1,1235),(67,1,1,1236),(12,1,1,1251),(78,1,1,1321),(79,1,1,1322),(4,1,1,2401),(3,1,1,2402),(5,1,1,2403),(9,1,1,2411),(8,1,1,2412),(10,1,1,2413),(11,1,1,2414),(157,1,1,23001),(154,1,1,23002),(156,1,1,23003),(158,1,1,23004),(145,1,1,40001),(144,1,1,40002),(146,1,1,40003),(94,1,1,50401),(102,1,1,50411),(97,1,1,50412),(99,1,1,50414),(101,1,1,50415),(103,1,1,50418),(104,1,1,50420),(105,1,1,50430),(93,1,1,50440),(113,1,1,59001),(114,1,1,59002),(115,1,1,59003);
+/*!40000 ALTER TABLE `llx_user_rights` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-05-12  0:55:41
