@@ -46,12 +46,14 @@ upload_max_filesize = ${PHP_INI_UPLOAD_MAX_FILESIZE}
 post_max_size = ${PHP_INI_POST_MAX_SIZE}
 allow_url_fopen = ${PHP_INI_ALLOW_URL_FOPEN}
 session.use_strict_mode = 1
+open_basedir = "/var/www/html:/var/www/documents:/tmp"
+expose_php = Off
 disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,passthru,shell_exec,system,proc_open,popen,dl,apache_note,apache_setenv,show_source,virtual
 EOF
 
 if [[ ! -f /var/www/html/conf/conf.php ]]; then
     echo "[INIT] => update Dolibarr Config ..."
-    mkdir /var/www/html/conf
+    mkdir /var/www/html/conf	
     cat > /var/www/html/conf/conf.php << EOF
 <?php
 \$dolibarr_main_url_root='${DOLI_URL_ROOT}';
@@ -67,6 +69,9 @@ if [[ ! -f /var/www/html/conf/conf.php ]]; then
 \$dolibarr_main_db_type='${DOLI_DB_TYPE}';
 \$dolibarr_main_authentication='${DOLI_AUTH}';
 \$dolibarr_main_prod=${DOLI_PROD};
+\$dolibarr_main_stream_to_disable='file,http,https,php,zip';
+\$dolibarr_main_restrict_eval_methods='getDolGlobalString, getDolGlobalInt, getDolCurrency, getDolEntity, getDolDBType, fetchNoCompute, hasRight, isAdmin, isModEnabled, isStringVarMatching, abs, min, max, round, dol_now, dol_concat, preg_match';
+\$dolibarr_main_restrict_os_commands='mariadb-dump, mariadb, mysqldump, mysql, pg_dump, pg_restore, clamdscan';
 EOF
 
     # Check if SSL is enabled for the database
@@ -110,7 +115,8 @@ EOF
   if [[ "${DOLI_DB_TYPE}" == "pgsql" && ! -f /var/www/documents/install.lock ]]; then
     chmod 600 /var/www/html/conf/conf.php
   else
-    chmod 400 /var/www/html/conf/conf.php
+  	chmod 500 /var/www/html/conf
+    chmod 400 /var/www/html/conf/conf.php	
   fi
 }
 
@@ -174,45 +180,45 @@ function initializeDatabase()
     if [[ ${fileSQL} != *.key.sql ]]; then
       echo "Importing table from `basename ${fileSQL}` ..."
       echo "Importing table from `basename ${fileSQL}` ..." >> /var/www/documents/initdb.log
-      sed -i 's/--.*//g;' ${fileSQL} 	# remove all comment because comments into create sql crash the load
+    #   sed -i 's/--.*//g;' ${fileSQL} 	# remove all comment because comments into create sql crash the load
       mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" < ${fileSQL} >> /var/www/documents/initdb.log 2>&1
     fi
   done
 
-  for fileSQL in /var/www/html/install/mysql/tables/*.key.sql; do
-    echo "Importing table key from `basename ${fileSQL}` ..."
-    echo "Importing table key from `basename ${fileSQL}` ..." >> /var/www/documents/initdb.log
-    sed -i 's/^--.*//g;' ${fileSQL}
-    mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" < ${fileSQL} >> /var/www/documents/initdb.log 2>&1
-  done
+	#   for fileSQL in /var/www/html/install/mysql/tables/*.key.sql; do
+	#     echo "Importing table key from `basename ${fileSQL}` ..."
+	#     echo "Importing table key from `basename ${fileSQL}` ..." >> /var/www/documents/initdb.log
+	#     sed -i 's/^--.*//g;' ${fileSQL}
+	#     mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" < ${fileSQL} >> /var/www/documents/initdb.log 2>&1
+	#   done
 
-  for fileSQL in /var/www/html/install/mysql/functions/*.sql; do
-    echo "Importing `basename ${fileSQL}` ..."
-    echo "Importing `basename ${fileSQL}` ..." >> /var/www/documents/initdb.log
-    sed -i 's/^--.*//g;' ${fileSQL}
-    mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" < ${fileSQL} >> /var/www/documents/initdb.log 2>&1
-  done
+	#   for fileSQL in /var/www/html/install/mysql/functions/*.sql; do
+	#     echo "Importing `basename ${fileSQL}` ..."
+	#     echo "Importing `basename ${fileSQL}` ..." >> /var/www/documents/initdb.log
+	#     sed -i 's/^--.*//g;' ${fileSQL}
+	#     mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" < ${fileSQL} >> /var/www/documents/initdb.log 2>&1
+	#   done
 
-  for fileSQL in /var/www/html/install/mysql/data/*.sql; do
-    if [[ $fileSQL =~ llx_accounting_account_ ]]; then
-    	echo "Do not import data from `basename ${fileSQL}` ..."
-        continue
-    fi
-    echo "Importing data from `basename ${fileSQL}` ..."
-    echo "Importing data from `basename ${fileSQL}` ..." >> /var/www/documents/initdb.log
-    sed -i 's/^--.*//g;' ${fileSQL}
-    sed -i 's/__ENTITY__/1/g;' ${fileSQL}
-    mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" < ${fileSQL} >> /var/www/documents/initdb.log 2>&1
-  done
+	#   for fileSQL in /var/www/html/install/mysql/data/*.sql; do
+	#     if [[ $fileSQL =~ llx_accounting_account_ ]]; then
+	#     	echo "Do not import data from `basename ${fileSQL}` ..."
+	#         continue
+	#     fi
+	#     echo "Importing data from `basename ${fileSQL}` ..."
+	#     echo "Importing data from `basename ${fileSQL}` ..." >> /var/www/documents/initdb.log
+	#     sed -i 's/^--.*//g;' ${fileSQL}
+	#     sed -i 's/__ENTITY__/1/g;' ${fileSQL}
+	#     mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" < ${fileSQL} >> /var/www/documents/initdb.log 2>&1
+	#   done
 
-  echo "Set some default const ..."
-  echo "Set some default const ..." >> /var/www/documents/initdb.log
-  mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "DELETE FROM llx_const WHERE name='MAIN_VERSION_LAST_INSTALL';" >> /var/www/documents/initdb.log 2>&1
-  mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "DELETE FROM llx_const WHERE name='MAIN_NOT_INSTALLED';" >> /var/www/documents/initdb.log 2>&1
-  mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "DELETE FROM llx_const WHERE name='MAIN_LANG_DEFAULT';" >> /var/www/documents/initdb.log 2>&1
-  mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_const(name,value,type,visible,note,entity) VALUES ('MAIN_VERSION_LAST_INSTALL', '${DOLI_VERSION}', 'chaine', 0, 'Dolibarr version when install', 0);" >> /var/www/documents/initdb.log 2>&1
-  mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_const(name,value,type,visible,note,entity) VALUES ('MAIN_LANG_DEFAULT', 'auto', 'chaine', 0, 'Default language', 1);" >> /var/www/documents/initdb.log 2>&1
-  mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_const(name,value,type,visible,note,entity) VALUES ('SYSTEMTOOLS_MYSQLDUMP', '/usr/bin/mysqldump', 'chaine', 0, '', 0);" >> /var/www/documents/initdb.log 2>&1
+	#   echo "Set some default const ..."
+	#   echo "Set some default const ..." >> /var/www/documents/initdb.log
+	#   mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "DELETE FROM llx_const WHERE name='MAIN_VERSION_LAST_INSTALL';" >> /var/www/documents/initdb.log 2>&1
+	#   mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "DELETE FROM llx_const WHERE name='MAIN_NOT_INSTALLED';" >> /var/www/documents/initdb.log 2>&1
+	#   mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "DELETE FROM llx_const WHERE name='MAIN_LANG_DEFAULT';" >> /var/www/documents/initdb.log 2>&1
+	#   mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_const(name,value,type,visible,note,entity) VALUES ('MAIN_VERSION_LAST_INSTALL', '${DOLI_VERSION}', 'chaine', 0, 'Dolibarr version when install', 0);" >> /var/www/documents/initdb.log 2>&1
+	#   mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_const(name,value,type,visible,note,entity) VALUES ('MAIN_LANG_DEFAULT', 'auto', 'chaine', 0, 'Default language', 1);" >> /var/www/documents/initdb.log 2>&1
+	#   mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_const(name,value,type,visible,note,entity) VALUES ('SYSTEMTOOLS_MYSQLDUMP', '/usr/bin/mysqldump', 'chaine', 0, '', 0);" >> /var/www/documents/initdb.log 2>&1
 
   if [[ ${DOLI_INIT_DEMO} -eq 1 ]]; then
     mkdir -p /var/www/dev/initdemo/
@@ -258,36 +264,36 @@ function initializeDatabase()
     echo "DOLI_INIT_DEMO is off. No demo data load to do." >> /var/www/documents/initdb.log
   fi
 
-  echo "Create SuperAdmin account ..."
-  echo "Create SuperAdmin account ..." >> /var/www/documents/initdb.log
-  pass_crypted=`echo -n ${DOLI_ADMIN_PASSWORD} | md5sum | awk '{print $1}'`
-  # TODO Generate pass_crypted using PHP password_hash and set MAIN_SECURITY_HASH_ALGO=password_hash into llx_const
-  #pass_crypted2=`php -r "echo password_hash(${DOLI_ADMIN_PASSWORD}, PASSWORD_BCRYPT);"`
-  #mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "DELETE FROM llx_const WHERE name='MAIN_SECURITY_HASH_ALGO';" >> /var/www/documents/initdb.log 2>&1
-  #mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_const(name,value,type,visible,note,entity) VALUES ('MAIN_SECURITY_HASH_ALGO', 'password_hash', 'chaine', 0, '', 0);" >> /var/www/documents/initdb.log 2>&1
+	# echo "Create SuperAdmin account ..."
+	# echo "Create SuperAdmin account ..." >> /var/www/documents/initdb.log
+	# pass_crypted=`echo -n ${DOLI_ADMIN_PASSWORD} | md5sum | awk '{print $1}'`
+  	# TODO Generate pass_crypted using PHP password_hash and set MAIN_SECURITY_HASH_ALGO=password_hash into llx_const
+  	#pass_crypted2=`php -r "echo password_hash(${DOLI_ADMIN_PASSWORD}, PASSWORD_BCRYPT);"`
+  	#mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "DELETE FROM llx_const WHERE name='MAIN_SECURITY_HASH_ALGO';" >> /var/www/documents/initdb.log 2>&1
+  	#mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_const(name,value,type,visible,note,entity) VALUES ('MAIN_SECURITY_HASH_ALGO', 'password_hash', 'chaine', 0, '', 0);" >> /var/www/documents/initdb.log 2>&1
   
-  # Insert may fails if record already exists
-  echo "Try insert into llx_user ..." >> /var/www/documents/initdb.log
-  mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_user (entity, login, pass_crypted, lastname, admin, statut) VALUES (0, '${DOLI_ADMIN_LOGIN}', '${pass_crypted}', 'SuperAdmin', 1, 1);" >> /var/www/documents/initdb.log 2>&1
-  # Insert may fails if record already exists
-  echo "Now do update llx_user ..." >> /var/www/documents/initdb.log
-  mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "UPDATE llx_user SET pass_crypted = '${pass_crypted}' WHERE login = '${DOLI_ADMIN_LOGIN}';" >> /var/www/documents/initdb.log 2>&1
+  	# Insert may fails if record already exists
+	#   echo "Try insert into llx_user ..." >> /var/www/documents/initdb.log
+	#   mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "INSERT INTO llx_user (entity, login, pass_crypted, lastname, admin, statut) VALUES (0, '${DOLI_ADMIN_LOGIN}', '${pass_crypted}', 'SuperAdmin', 1, 1);" >> /var/www/documents/initdb.log 2>&1
+  	# Insert may fails if record already exists
+	#   echo "Now do update llx_user ..." >> /var/www/documents/initdb.log
+	#   mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "UPDATE llx_user SET pass_crypted = '${pass_crypted}' WHERE login = '${DOLI_ADMIN_LOGIN}';" >> /var/www/documents/initdb.log 2>&1
 
-  echo "Enable user module ..."
-  echo "Enable user module ..." >> /var/www/documents/initdb.log
-  php /var/www/scripts/docker-init.php
+	#   echo "Enable user module ..."
+	#   echo "Enable user module ..." >> /var/www/documents/initdb.log
+	#   php /var/www/scripts/docker-init.php
 
-  echo "Set cron key to ${DOLI_CRON_KEY}..."
-  echo "Set cron key to ${DOLI_CRON_KEY}..." >> /var/www/documents/initdb.log
-  mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "UPDATE llx_const set value = '${DOLI_CRON_KEY}' WHERE name = 'CRON_KEY'" >> /var/www/documents/initdb.log 2>&1
+  	echo "Set cron key to ${DOLI_CRON_KEY}..."
+  	echo "Set cron key to ${DOLI_CRON_KEY}..." >> /var/www/documents/initdb.log
+  	mysql -u "${DOLI_DB_USER}" -p"${DOLI_DB_PASSWORD}" -h "${DOLI_DB_HOST}" -P "${DOLI_DB_HOST_PORT}" "${DOLI_DB_NAME}" -e "UPDATE llx_const set value = '${DOLI_CRON_KEY}' WHERE name = 'CRON_KEY'" >> /var/www/documents/initdb.log 2>&1
 
-  # Run init scripts
-  echo "Run scripts into docker-init.d if there is ..."
-  echo "Run scripts into docker-init.d if there is ..." >> /var/www/documents/initdb.log
-  runScripts "docker-init.d"
+	# Run init scripts
+	echo "Run scripts into docker-init.d if there is ..."
+	echo "Run scripts into docker-init.d if there is ..." >> /var/www/documents/initdb.log
+	runScripts "docker-init.d"
 
-  # Update ownership after initialisation of modules
-  chown -R www-data:www-data /var/www/documents
+	# Update ownership after initialisation of modules
+	chown -R www-data:www-data /var/www/documents
 }
 
 
@@ -441,30 +447,29 @@ function run()
   runScripts "before-starting.d"
 
   
-  echo
-  echo "*** You can connect to the docker Mariadb with:"
-  echo "sudo docker exec -it nameofwebcontainer-mariadb-1 bash"
-  echo "mariadb -uroot -p'MYSQL_ROOT_PASSWORD' -h localhost"
-  echo "or"
-  echo "mariadb -uxxx -p'yyy' -h mariadb  with xxx in /run/secrets/mysql-user and yyy in /run/secrets/mysql-password if these files were used in docker-compose.yml"
-  echo "ls /var/lib/mysql"
-  echo
-  echo "*** You can connect to the docker Dolibarr with:"
-  echo "sudo docker exec -it nameofwebcontainer-web-1 bash"
-  echo "ls /var/www/documents"
-  echo "ls /var/www/html"
-  echo
-  echo "*** You can access persistent directory from the host with:"
-  echo "ls /home/dolibarr_mariadb_latest"
-  echo "ls /home/dolibarr_documents_latest"
-  echo "ls /home/dolibarr_custom_latest"
-  echo
-  echo "*** You can connect to the running Dolibarr web application with:"
-  echo "http://127.0.0.1:port"
-  echo
+	#   echo
+	#   echo "*** You can connect to the docker Mariadb with:"
+	#   echo "sudo docker exec -it nameofwebcontainer-mariadb-1 bash"
+	#   echo "mariadb -uroot -p'MYSQL_ROOT_PASSWORD' -h localhost"
+	#   echo "or"
+	#   echo "mariadb -uxxx -p'yyy' -h mariadb  with xxx in /run/secrets/mysql-user and yyy in /run/secrets/mysql-password if these files were used in docker-compose.yml"
+	#   echo "ls /var/lib/mysql"
+	#   echo
+	#   echo "*** You can connect to the docker Dolibarr with:"
+	#   echo "sudo docker exec -it nameofwebcontainer-web-1 bash"
+	#   echo "ls /var/www/documents"
+	#   echo "ls /var/www/html"
+	#   echo
+	#   echo "*** You can access persistent directory from the host with:"
+	#   echo "ls /home/dolibarr_mariadb_latest"
+	#   echo "ls /home/dolibarr_documents_latest"
+	#   echo "ls /home/dolibarr_custom_latest"
+	#   echo
+	#   echo "*** You can connect to the running Dolibarr web application with:"
+	#   echo "http://127.0.0.1:port"
+	#   echo	
+	echo " Server is up!!! "	
 }
-
-
 
 # main script 
 
@@ -472,8 +477,8 @@ echo "docker-run.sh started"
 
 DOLI_DB_USER=$(get_env_value 'DOLI_DB_USER' 'dolidbuser')
 DOLI_DB_PASSWORD=$(get_env_value 'DOLI_DB_PASSWORD' 'dolidbpass')
-DOLI_ADMIN_LOGIN=$(get_env_value 'DOLI_ADMIN_LOGIN' 'admin')
-DOLI_ADMIN_PASSWORD=$(get_env_value 'DOLI_ADMIN_PASSWORD' 'admin')
+DOLI_ADMIN_LOGIN=$(get_env_value 'DOLI_ADMIN_LOGIN' 'dowebmx')
+DOLI_ADMIN_PASSWORD=$(get_env_value 'DOLI_ADMIN_PASSWORD' 'caballeronegro')
 DOLI_CRON_KEY=$(get_env_value 'DOLI_CRON_KEY' '')
 DOLI_CRON_USER=$(get_env_value 'DOLI_CRON_USER' '')
 DOLI_INSTANCE_UNIQUE_ID=$(get_env_value 'DOLI_INSTANCE_UNIQUE_ID' '')
@@ -493,6 +498,59 @@ fi
 if [ "${1#-}" != "$1" ]; then
   set -- apache2-foreground "$@"
 fi
+
+echo "Applying branding..."
+
+mkdir -p /var/www/documents/mycompany/logos/ /var/www/documents/medias/image/ /var/www/documents/mycompany/logos/thumbs/
+
+# LOGOS
+if [ ! -f "/var/www/documents/mycompany/logos/background.png" ]; then
+	cp /tmp/dowebmx/branding/background.png /var/www/documents/mycompany/logos/
+fi
+
+if [ ! -f "/var/www/documents/mycompany/logos/logo-small.jpg" ]; then
+	cp /tmp/dowebmx/branding/logo-small.jpg /var/www/documents/mycompany/logos/
+fi
+
+if [ ! -f "/var/www/documents/mycompany/logos/logo-white.png" ]; then
+	cp /tmp/dowebmx/branding/logo-white.png /var/www/documents/mycompany/logos/
+fi
+
+if [ ! -f "/var/www/documents/mycompany/logos/logo.png" ]; then
+	cp /tmp/dowebmx/branding/logo.png /var/www/documents/mycompany/logos/
+fi
+
+# THUMBS
+if [ ! -f "/var/www/documents/mycompany/logos/thumbs/logo_mini.png" ]; then
+	cp /tmp/dowebmx/branding/thumbs/logo_mini.png /var/www/documents/mycompany/logos/thumbs/
+fi
+
+if [ ! -f "/var/www/documents/mycompany/logos/thumbs/logo_small.png" ]; then
+	cp /tmp/dowebmx/branding/thumbs/logo_small.png /var/www/documents/mycompany/logos/thumbs/
+fi
+
+if [ ! -f "/var/www/documents/mycompany/logos/thumbs/logo-small_mini.jpg" ]; then
+	cp /tmp/dowebmx/branding/thumbs/logo-small_mini.jpg /var/www/documents/mycompany/logos/thumbs/
+fi
+
+if [ ! -f "/var/www/documents/mycompany/logos/thumbs/logo-small_small.jpg" ]; then
+	cp /tmp/dowebmx/branding/thumbs/logo-small_small.jpg /var/www/documents/mycompany/logos/thumbs/
+fi
+
+chown -R www-data:www-data /var/www/documents/mycompany/
+
+# MEDIAS
+if [ ! -f "/var/www/documents/medias/image/logo.png" ]; then
+	cp /tmp/dowebmx/branding/logo.png /var/www/documents/medias/image/
+fi
+
+if [ ! -f "/var/www/documents/medias/image/logo-white.png" ]; then
+	cp /tmp/dowebmx/branding/logo-white.png /var/www/documents/medias/image/
+fi
+
+chown -R www-data:www-data /var/www/documents/medias/
+
+echo "Branding completed."
 
 exec "$@"
 
