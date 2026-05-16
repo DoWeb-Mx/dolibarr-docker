@@ -552,6 +552,21 @@ chown -R www-data:www-data /var/www/documents/medias/
 
 echo "Branding completed."
 
+# PLUGIN CFDIMX
+if [ ! -f "/var/www/html/custom/cfdimx/" ]; then
+	echo 
+	echo "Copying Module CFDMIX"
+	echo 
+	cp /tmp/dowebmx/plugins/*.zip /var/www/html/custom/
+	echo 
+	echo "Unziping Module CFDMIX"
+	echo 
+	unzip -o /tmp/dowebmx/plugins/module_cfdimx-*.zip -d /var/www/html/custom/
+	chown -R www-data:www-data /var/www/html/custom/	
+fi
+
+
+
 exec "$@"
 
 echo "docker-run.sh stopped."
