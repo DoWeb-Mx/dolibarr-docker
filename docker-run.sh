@@ -562,7 +562,7 @@ if [ ! -f "/var/www/html/custom/cfdimx/" ]; then
 	echo "Unziping Module CFDMIX"
 	echo 
 	unzip -o /tmp/dowebmx/plugins/module_cfdimx-*.zip -d /var/www/html/custom/
-	chown -R www-data:www-data /var/www/html/custom/	
+	# chown -R www-data:www-data /var/www/html/custom/	
 fi
 
 
