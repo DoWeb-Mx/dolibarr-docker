@@ -4,3 +4,5 @@ docker-compose-links/
 /.buildpath
 /.project
 /.settings/
+plugins/module_cfdimx-4.7.2.zip
+/plugins
