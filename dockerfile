@@ -7,14 +7,23 @@ FROM dolibarr/dolibarr:23.0.2
 
 LABEL maintainer="DoWebMx <ayuda@doweb.mx>"
 
+# CUSTOMIZING DOCKER RUN FOR DOWEBMX
 COPY docker-run.sh /usr/local/bin/docker-run.sh
 RUN chmod +x /usr/local/bin/docker-run.sh
+
+# ADDING ZIP LIBRARY
+RUN apt-get update && \
+    apt-get install -y unzip && \
+    rm -rf /var/lib/apt/lists/*
 
 # BRANDING
 COPY ./config/*.png /tmp/dowebmx/branding/
 COPY ./config/*.jpg /tmp/dowebmx/branding/
 COPY ./config/thumbs/*.jpg /tmp/dowebmx/branding/thumbs/
 COPY ./config/thumbs/*.png /tmp/dowebmx/branding/thumbs/
+
+# CFDIMX PLUGIN BY DOWEBMX
+COPY ./plugins/*.zip /tmp/dowebmx/plugins/
 
 # PREPARING INITIAL DATABASE
 COPY ./dump/dolibarr-saas-files/*.sql /tmp/dowebmx/sql/
