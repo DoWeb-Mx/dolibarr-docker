@@ -1,0 +1,61 @@
+#!/bin/bash
+# CREATED BY RUBEN TRUJILLO - ABR 01 2026
+# UPDATED BY RUBEN TRUJILLO - MAY 14 2026
+clear
+
+# VARIABLES
+IMAGE_FILE="dowebmx-erp.tar.gz"        # Nombre de tu archivo local
+REMOTE_USER="root"                     # Usuario SSH (root recomendado en Plesk)
+REMOTE_PATH="/tmp"                     # Carpeta temporal en el servidor
+# SERVERS=("10.7.0.1" "198.71.58.17") # Lista de IPs de tus servidores
+SERVERS=("10.7.0.1") # Lista de IPs de tus servidores
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/.env"
+source "$ENV_FILE"
+
+cd target
+
+echo "----------------------------------------"
+echo " DOWEBMX SAAS EXPORTING PROCESS STARTED "
+echo "----------------------------------------"
+
+echo 
+echo "🧹 Limpiando archivos temporales en el remoto..."
+rm $SCRIPT_DIR/target/*
+
+echo
+echo "📦 Generando imágen para el contenedor..."
+docker save -o ./target/dowebmx-erp.tar dowebmx/cloud-erp:${DOLI_VERSION}-php${PHP_VERSION}-rev${REVISION} dowebmx/cloud-erp:latest
+
+echo
+echo "📦 Comprimiendo imágen..."
+gzip ./target/dowebmx-erp.tar
+
+for SERVER in "${SERVERS[@]}"
+do
+	echo
+	echo "📦 Subiendo imagen al servidor..."	
+	echo "$IMAGE_FILE" "$REMOTE_USER@$SERVER:$REMOTE_PATH/"
+	echo
+	scp "$IMAGE_FILE" "$REMOTE_USER@$SERVER:$REMOTE_PATH/"
+
+	echo
+	echo "🐳 Cargando imagen en Docker (esto puede tardar)..."
+	echo "$REMOTE_USER@$SERVER" "sudo docker load -i $REMOTE_PATH/$IMAGE_FILE"
+	echo
+	ssh "$REMOTE_USER@$SERVER" "sudo docker load -i $REMOTE_PATH/$IMAGE_FILE"
+
+	echo
+	echo "🧹 Limpiando archivos temporales en el remoto..."
+	echo "$REMOTE_USER@$SERVER" "rm $REMOTE_PATH/$IMAGE_FILE"
+	echo
+	ssh "$REMOTE_USER@$SERVER" "rm $REMOTE_PATH/$IMAGE_FILE"
+
+done
+
+cd ..
+
+echo "------------------------------------------"
+echo " DOWEBMX SAAS EXPORTING PROCESS COMPLETED "
+echo "------------------------------------------"
