@@ -1,6 +1,6 @@
 #!/bin/bash
 # CREATED BY RUBEN TRUJILLO - ABR 01 2026
-# UPDATED BY RUBEN TRUJILLO - MAY 14 2026
+# UPDATED BY RUBEN TRUJILLO - MAY 15 2026
 clear
 
 # VARIABLES
@@ -21,33 +21,33 @@ echo " DOWEBMX SAAS EXPORTING PROCESS STARTED "
 echo "----------------------------------------"
 
 echo 
-echo "🧹 Limpiando archivos temporales en el remoto..."
+echo "🧹 Cleaning previous files..."
 rm $SCRIPT_DIR/target/*
 
 echo
-echo "📦 Generando imágen para el contenedor..."
-docker save -o ./target/dowebmx-erp.tar dowebmx/cloud-erp:${DOLI_VERSION}-php${PHP_VERSION}-rev${REVISION} dowebmx/cloud-erp:latest
+echo "📦 Saving docker image..."
+docker save -o dowebmx-erp.tar dowebmx/cloud-erp:${DOLI_VERSION}-php${PHP_VERSION}-rev${REVISION} dowebmx/cloud-erp:latest
 
 echo
-echo "📦 Comprimiendo imágen..."
-gzip ./target/dowebmx-erp.tar
+echo "📦 Compressing image..."
+gzip dowebmx-erp.tar
 
 for SERVER in "${SERVERS[@]}"
 do
 	echo
-	echo "📦 Subiendo imagen al servidor..."	
+	echo "📦 Uploading image to server..."	
 	echo "$IMAGE_FILE" "$REMOTE_USER@$SERVER:$REMOTE_PATH/"
 	echo
 	scp "$IMAGE_FILE" "$REMOTE_USER@$SERVER:$REMOTE_PATH/"
 
 	echo
-	echo "🐳 Cargando imagen en Docker (esto puede tardar)..."
+	echo "🐳 Installing image in Docker, this task can take several minutes"
 	echo "$REMOTE_USER@$SERVER" "sudo docker load -i $REMOTE_PATH/$IMAGE_FILE"
 	echo
 	ssh "$REMOTE_USER@$SERVER" "sudo docker load -i $REMOTE_PATH/$IMAGE_FILE"
 
 	echo
-	echo "🧹 Limpiando archivos temporales en el remoto..."
+	echo "🧹 Cleaning remote remporal files..."
 	echo "$REMOTE_USER@$SERVER" "rm $REMOTE_PATH/$IMAGE_FILE"
 	echo
 	ssh "$REMOTE_USER@$SERVER" "rm $REMOTE_PATH/$IMAGE_FILE"
