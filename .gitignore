@@ -6,3 +6,4 @@ docker-compose-links/
 /.settings/
 plugins/module_cfdimx-4.7.2.zip
 /plugins
+/target
