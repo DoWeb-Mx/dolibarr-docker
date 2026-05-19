@@ -23,7 +23,7 @@ COPY ./config/thumbs/*.jpg /tmp/dowebmx/branding/thumbs/
 COPY ./config/thumbs/*.png /tmp/dowebmx/branding/thumbs/
 
 # CFDIMX PLUGIN BY DOWEBMX
-COPY ./plugins/*.zip /tmp/dowebmx/plugins/
+# COPY ./plugins/*.zip /tmp/dowebmx/plugins/
 
 # PREPARING INITIAL DATABASE
 COPY ./dump/dolibarr-saas-files/*.sql /tmp/dowebmx/sql/
@@ -34,6 +34,7 @@ RUN rm -rf /var/www/html/install/mysql/tables/* \
 RUN cp /tmp/dowebmx/sql/*.sql /var/www/html/install/mysql/tables/	
 
 # HARDENING
+RUN echo "ServerName localhost" >> /etc/apache2/conf-enabled/servername.conf
 RUN echo "ServerTokens Prod" >> /etc/apache2/apache2.conf \
     && echo "ServerSignature Off" >> /etc/apache2/apache2.conf
 
