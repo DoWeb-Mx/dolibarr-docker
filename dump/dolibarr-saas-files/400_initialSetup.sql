@@ -1,3 +1,6 @@
+SET NAMES 'utf8mb4';
+SET CHARACTER SET utf8mb4;
+
 INSERT IGNORE INTO llx_const (name, entity, value, `type`, visible, note, tms) VALUES('MAIN_INFO_SOCIETE_LOGO_SQUARRED_MINI', 1, 'logo-small_mini.jpg', 'chaine', 0, '', '2026-04-21 00:00:01');
 INSERT IGNORE INTO llx_const (name, entity, value, `type`, visible, note, tms) VALUES('MAIN_INFO_SOCIETE_LOGO_SQUARRED_SMALL', 1, 'logo-small_small.jpg', 'chaine', 0, '', '2026-04-21 00:00:01');
 INSERT IGNORE INTO llx_const (name, entity, value, `type`, visible, note, tms) VALUES('MAIN_INFO_SOCIETE_LOGO_SQUARRED', 1, 'logo-small.jpg', 'chaine', 0, '', '2026-04-21 00:00:01');

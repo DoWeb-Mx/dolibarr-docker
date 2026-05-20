@@ -1,3 +1,6 @@
+SET NAMES 'utf8mb4';
+SET CHARACTER SET utf8mb4;
+
 UPDATE llx_c_payment_term set active = 0 WHERE code <> 'RECEP';
 UPDATE llx_c_payment_term set active = 1, sortorder = 1 WHERE code ='RECEP';
 UPDATE llx_c_payment_term set active = 1, sortorder = 40 WHERE code ='30D';

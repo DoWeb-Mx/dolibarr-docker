@@ -1,3 +1,5 @@
+SET NAMES 'utf8mb4';
+SET CHARACTER SET utf8mb4;
 
 UPDATE llx_c_tva set code='002' WHERE fk_pays = (SELECT rowid FROM llx_c_country WHERE code = 'MX');
 

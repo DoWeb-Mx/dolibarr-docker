@@ -1,3 +1,5 @@
+SET NAMES 'utf8mb4';
+SET CHARACTER SET utf8mb4;
 
 INSERT IGNORE INTO llx_c_email_templates (entity, module, type_template, lang, private, fk_user, datec, tms, label, `position`, defaultfortype, enabled, active, email_from, email_to, email_tocc, email_tobcc, topic, joinfiles, content, content_lines) VALUES(1, NULL, 'facture_send', NULL, 0, NULL, '2026-05-05 22:36:44', '2026-05-05 23:05:50', 'FacturasNuevas', 100, 1, '1', 1, NULL, NULL, NULL, NULL, 'Nueva Factura __REF__', '1', '<table border="0" cellpadding="0" cellspacing="0" style="background-color:#152c5b; border-radius:15px; width:100%">
 <tr>
