@@ -7,3 +7,4 @@ docker-compose-links/
 plugins/module_cfdimx-4.7.2.zip
 /plugins
 /target
+/dolibarr-23.0.3
