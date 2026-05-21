@@ -3,6 +3,12 @@ FROM dolibarr/dolibarr:23.0.2
 
 LABEL maintainer="DoWebMx <ayuda@doweb.mx>"
 
+# ADDING MOST RECENT DOLIBARR VERSION
+RUN rm -rf /var/www/html/*
+RUN rm -rf /var/www/scripts/*
+COPY ./dolibarr-23.0.3/scripts/  /var/www/scripts/
+COPY ./dolibarr-23.0.3/htdocs/  /var/www/html/
+
 # CUSTOMIZING DOCKER RUN FOR DOWEBMX
 COPY docker-run.sh /usr/local/bin/docker-run.sh
 RUN chmod +x /usr/local/bin/docker-run.sh
