@@ -1,13 +1,13 @@
 # ARG CACHE_BUST=14
-FROM dolibarr/dolibarr:23.0.2
+FROM dolibarr/dolibarr:23.0.3
 
 LABEL maintainer="DoWebMx <ayuda@doweb.mx>"
 
 # ADDING MOST RECENT DOLIBARR VERSION
 RUN rm -rf /var/www/html/*
 RUN rm -rf /var/www/scripts/*
-COPY ./dolibarr-23.0.3/scripts/  /var/www/scripts/
-COPY ./dolibarr-23.0.3/htdocs/  /var/www/html/
+# COPY ./dolibarr-23.0.3/scripts/  /var/www/scripts/
+# COPY ./dolibarr-23.0.3/htdocs/  /var/www/html/
 
 # CUSTOMIZING DOCKER RUN FOR DOWEBMX
 COPY docker-run.sh /usr/local/bin/docker-run.sh
@@ -33,7 +33,7 @@ COPY ./dump/dolibarr-saas-files/*.sql /tmp/dowebmx/sql/
 RUN rm -rf /var/www/html/install/mysql/tables/* \
     && rm -rf /var/www/html/install/mysql/data/*
 
-RUN cp /tmp/dowebmx/sql/*.sql /var/www/html/install/mysql/tables/	
+# RUN cp /tmp/dowebmx/sql/*.sql /var/www/html/install/mysql/tables/	
 
 # HARDENING
 RUN echo "ServerName localhost" >> /etc/apache2/conf-enabled/servername.conf
