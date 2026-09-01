@@ -1,14 +1,14 @@
 #!/bin/bash
 # CREATED BY RUBEN TRUJILLO - ABR 01 2026
-# UPDATED BY RUBEN TRUJILLO - MAY 15 2026
+# UPDATED BY RUBEN TRUJILLO - AGO 31 2026
 clear
 
 # VARIABLES
 IMAGE_FILE="dowebmx-erp.tar.gz"        # Nombre de tu archivo local
-REMOTE_USER="root"                     # Usuario SSH (root recomendado en Plesk)
+REMOTE_USER="ruben"                     # Usuario SSH (root recomendado en Plesk)
 REMOTE_PATH="/tmp"                     # Carpeta temporal en el servidor
 # SERVERS=("10.7.0.1" "198.71.58.17") # Lista de IPs de tus servidores
-SERVERS=("10.7.0.1") # Lista de IPs de tus servidores
+SERVERS=("198.71.58.17") # Lista de IPs de tus servidores
 
 SOCKET_DIR="$HOME/.ssh/sockets"
 
@@ -55,6 +55,7 @@ do
 	echo
 	echo "🐳 Installing image in Docker, this task can take several minutes"	
 	ssh -S "$SOCKET" "$REMOTE_USER@$SERVER" "docker load -i $REMOTE_PATH/$IMAGE_FILE && rm $REMOTE_PATH/$IMAGE_FILE"
+	# ssh -S "$SOCKET" "root@$SERVER" "docker load -i $REMOTE_PATH/$IMAGE_FILE && rm $REMOTE_PATH/$IMAGE_FILE"
 	echo "------------------------------------------"
 
 	# echo
